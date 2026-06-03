@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { FiLogIn, FiUserPlus, FiGrid } from 'react-icons/fi';
+import Logo from './Logo';
 
 const navLinks = [
   { label: 'Home', path: '/' },
   { label: 'Courses', path: '/courses' },
   { label: 'Placements', path: '/placements' },
-  { label: 'Career', path: '/career' },
+  { label: 'Jobs', path: '/jobs' },
   { label: 'About', path: '/about' },
   { label: 'Contact', path: '/contact' },
 ];
@@ -24,49 +26,46 @@ export default function Navbar() {
   }, []);
 
   const isHome = location.pathname === '/';
-  const bg = scrolled || !isHome ? 'rgba(26,26,46,0.98)' : 'transparent';
-  const shadow = scrolled ? '0 2px 20px rgba(0,0,0,0.3)' : 'none';
+  const bg = scrolled || !isHome ? 'rgba(15,23,42,0.97)' : 'transparent';
+  const shadow = scrolled ? '0 2px 20px rgba(0,0,0,0.2)' : 'none';
 
   return (
     <nav style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
       background: bg, boxShadow: shadow, transition: 'var(--transition)',
-      backdropFilter: scrolled ? 'blur(10px)' : 'none', padding: '0 20px'
+      backdropFilter: scrolled ? 'blur(12px)' : 'none', padding: '0 24px'
     }}>
-      <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 70 }}>
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: '1.4rem', fontWeight: 800, color: 'white' }}>
-          <span style={{ fontSize: '1.8rem' }}>⚡</span> EduVance Pro
-        </Link>
+      <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 70, padding: 0 }}>
+        <Logo style={{ color: 'white' }} />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ display: 'flex', gap: 4 }}>
+          <div style={{ display: 'flex', gap: 2 }}>
             {navLinks.map(link => (
               <Link key={link.path} to={link.path} style={{
-                padding: '8px 16px', color: location.pathname === link.path ? 'var(--primary-light)' : 'rgba(255,255,255,0.8)',
-                fontSize: 14, fontWeight: 500, borderRadius: 8, transition: 'var(--transition)',
-                borderBottom: location.pathname === link.path ? '2px solid var(--primary)' : '2px solid transparent',
+                padding: '8px 14px', color: location.pathname === link.path ? 'var(--primary-light)' : 'rgba(255,255,255,0.75)',
+                fontSize: 14, fontWeight: 500, borderRadius: 6, transition: 'var(--transition)',
+                background: location.pathname === link.path ? 'rgba(37,99,235,0.15)' : 'transparent',
                 display: 'none',
               }}
                 className="nav-link"
-                onMouseEnter={e => e.target.style.color = 'var(--primary-light)'}
-                onMouseLeave={e => e.target.style.color = location.pathname === link.path ? 'var(--primary-light)' : 'rgba(255,255,255,0.8)'}
               >{link.label}</Link>
             ))}
           </div>
 
           {isAuthenticated ? (
             <Link to={`/${user.role}-dashboard`} className="btn btn-primary btn-sm">
-              Dashboard
+              <FiGrid size={14} /> Dashboard
             </Link>
           ) : (
             <div style={{ display: 'flex', gap: 8 }}>
-              <Link to="/login" className="btn btn-secondary btn-sm">Login</Link>
-              <Link to="/register" className="btn btn-primary btn-sm">Register</Link>
+              <Link to="/login" className="btn btn-secondary btn-sm">
+                <FiLogIn size={14} /> Login
+              </Link>
             </div>
           )}
 
           <button onClick={() => setMenuOpen(!menuOpen)} style={{
-            display: 'none', background: 'none', border: 'none', color: 'white', fontSize: 28, cursor: 'pointer', padding: 8
+            display: 'none', background: 'none', border: 'none', color: 'white', fontSize: 24, cursor: 'pointer', padding: 8
           }} className="mobile-menu-btn">
             {menuOpen ? '✕' : '☰'}
           </button>
@@ -74,10 +73,11 @@ export default function Navbar() {
       </div>
 
       {menuOpen && (
-        <div style={{ background: 'var(--gray-900)', padding: 20, display: 'none' }} className="mobile-menu">
+        <div style={{ background: 'var(--gray-900)', padding: 16, display: 'none' }} className="mobile-menu">
           {navLinks.map(link => (
             <Link key={link.path} to={link.path} onClick={() => setMenuOpen(false)} style={{
-              display: 'block', padding: '12px 16px', color: 'white', borderBottom: '1px solid rgba(255,255,255,0.1)'
+              display: 'block', padding: '12px 16px', color: 'white', borderBottom: '1px solid rgba(255,255,255,0.06)',
+              fontSize: 14, borderRadius: 6
             }}>{link.label}</Link>
           ))}
         </div>

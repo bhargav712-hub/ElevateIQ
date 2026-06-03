@@ -10,6 +10,7 @@ import Contact from './pages/public/Contact';
 import Courses from './pages/public/Courses';
 import Placements from './pages/public/Placements';
 import Career from './pages/public/Career';
+import JobApplication from './pages/public/JobApplication';
 import Login from './pages/public/Login';
 import Register from './pages/public/Register';
 
@@ -58,12 +59,12 @@ export default function App() {
             <Route path="/courses" element={<Courses />} />
             <Route path="/placements" element={<Placements />} />
             <Route path="/career" element={<Career />} />
+            <Route path="/jobs" element={<JobApplication />} />
           </Route>
 
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Student Portal */}
           <Route path="/student-dashboard" element={<ProtectedRoute allowedRoles={['student']}><PortalLayout /></ProtectedRoute>}>
             <Route index element={<StudentDashboard />} />
           </Route>
@@ -89,7 +90,6 @@ export default function App() {
             <Route index element={<StudentCertificates />} />
           </Route>
 
-          {/* Trainer Portal */}
           <Route path="/trainer-dashboard" element={<ProtectedRoute allowedRoles={['trainer']}><PortalLayout /></ProtectedRoute>}>
             <Route index element={<TrainerDashboard />} />
           </Route>
@@ -112,7 +112,6 @@ export default function App() {
             <Route index element={<TrainerStudents />} />
           </Route>
 
-          {/* Employee Portal */}
           <Route path="/employee-dashboard" element={<ProtectedRoute allowedRoles={['employee']}><PortalLayout /></ProtectedRoute>}>
             <Route index element={<EmployeeDashboard />} />
           </Route>
@@ -132,7 +131,6 @@ export default function App() {
             <Route index element={<EmployeeAnnouncements />} />
           </Route>
 
-          {/* Admin Portal */}
           <Route path="/admin-dashboard" element={<ProtectedRoute allowedRoles={['admin']}><PortalLayout /></ProtectedRoute>}>
             <Route index element={<AdminDashboard />} />
           </Route>

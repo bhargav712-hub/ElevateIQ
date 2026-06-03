@@ -31,7 +31,7 @@ export function AuthProvider({ children }) {
           resolve(safeUser);
         } else {
           setLoading(false);
-          reject(new Error('Invalid credentials'));
+          reject(new Error('Invalid credentials. Please use a valid account.'));
         }
       }, 800);
     });
@@ -42,22 +42,8 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('edu_user');
   };
 
-  const register = (data) => {
-    setLoading(true);
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const newUser = { id: Date.now(), ...data, enrolledCourses: [] };
-        const { password: _, ...safeUser } = newUser;
-        setUser(safeUser);
-        localStorage.setItem('edu_user', JSON.stringify(safeUser));
-        setLoading(false);
-        resolve(safeUser);
-      }, 800);
-    });
-  };
-
   return (
-    <AuthContext.Provider value={{ user, login, logout, register, loading, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );
