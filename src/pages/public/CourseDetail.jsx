@@ -1,14 +1,54 @@
-import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { courses } from '../../data/siteData';
+import { useAuth } from '../../context/AuthContext';
 import { FiArrowLeft, FiBookOpen, FiList, FiFileText, FiCheck, FiArrowRight, FiClock, FiStar, FiUsers } from 'react-icons/fi';
 
 export default function CourseDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [detailTab, setDetailTab] = useState('description');
+  const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const course = courses.find(c => c.id === Number(id));
+  useEffect(() => {
+    fetch(`http://localhost:8080/api/public/courses/${id}`)
+      .then(res => res.json())
+      .then(data => {
+        setCourse(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to fetch course details", err);
+        setLoading(false);
+      });
+  }, [id]);
+
+  const handleEnroll = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:8080/api/student/enroll/${course.id}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if(res.ok) {
+        navigate('/student-dashboard');
+      } else {
+        const errText = await res.text();
+        alert(`Enrollment failed: ${errText}`);
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error occurred during enrollment");
+    }
+  };
+
+  if (loading) return <div style={{ padding: '120px 20px', textAlign: 'center', color: 'white' }}>Loading course details...</div>;
 
   if (!course) {
     return (
@@ -110,9 +150,9 @@ export default function CourseDetail() {
                       <div style={{ fontSize: 13, color: 'var(--gray-500)', fontWeight: 500, marginTop: 4 }}>Students</div>
                     </div>
                   </div>
-                  <Link to="/register" className="btn btn-primary btn-lg" style={{ marginTop: 28, display: 'inline-flex', gap: 8 }}>
+                  <button onClick={handleEnroll} className="btn btn-primary btn-lg" style={{ marginTop: 28, display: 'inline-flex', gap: 8, cursor: 'pointer', border: 'none' }}>
                     Enroll Now — Start Learning <FiArrowRight />
-                  </Link>
+                  </button>
                 </div>
               )}
 
@@ -174,9 +214,9 @@ export default function CourseDetail() {
                       </div>
                     ))}
                   </div>
-                  <Link to="/register" className="btn btn-primary btn-lg" style={{ marginTop: 24, display: 'inline-flex', gap: 8 }}>
+                  <button onClick={handleEnroll} className="btn btn-primary btn-lg" style={{ marginTop: 24, display: 'inline-flex', gap: 8, cursor: 'pointer', border: 'none' }}>
                     Enroll Now — Start Learning <FiArrowRight />
-                  </Link>
+                  </button>
                 </div>
               )}
             </motion.div>

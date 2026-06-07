@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext';
 import { siteInfo, placements, achievements } from '../../data/siteData';
 import { HeroScene, ThreeDCard } from '../../components/3d/Scene3D';
 import {
@@ -103,12 +104,38 @@ function FloatingBadge({ icon: Icon, label, value, style }) {
 export default function Home() {
   const [courses, setCourses] = useState([]);
 
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
   useEffect(() => {
     fetch('http://localhost:8080/api/public/courses')
       .then(res => res.json())
       .then(data => setCourses(data))
       .catch(err => console.error("Failed to fetch courses:", err));
   }, []);
+
+  const handleEnroll = async (courseId) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:8080/api/student/enroll/${courseId}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if(res.ok) {
+        navigate('/student-dashboard');
+      } else {
+        const errText = await res.text();
+        alert(`Enrollment failed: ${errText}`);
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error occurred during enrollment");
+    }
+  };
 
   const fadeUp = {
     initial: { opacity: 0, y: 30 },
@@ -448,7 +475,7 @@ export default function Home() {
                         <span style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary)' }}>₹{course.price}</span>
                         <span style={{ fontSize: 13, color: 'var(--gray-400)', textDecoration: 'line-through', marginLeft: 8 }}>₹{course.originalPrice}</span>
                       </div>
-                      <Link to="/courses" className="btn btn-primary btn-sm">Enroll Now</Link>
+                      <button onClick={(e) => { e.preventDefault(); handleEnroll(course.id); }} className="btn btn-primary btn-sm" style={{ cursor: 'pointer', border: 'none' }}>Enroll Now</button>
                     </div>
                   </div>
                 </motion.div>

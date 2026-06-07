@@ -1,29 +1,48 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 
 export default function StudentDashboard() {
   const { user } = useAuth();
-  const enrolled = user?.enrolledCourses || [];
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('http://localhost:8080/api/student/dashboard', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const result = await res.json();
+        setData(result);
+      } catch (err) {
+        console.error('Failed to fetch dashboard data', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [user]);
+
+  if (loading) {
+    return <div style={{ padding: 40, textAlign: 'center' }}>Loading dashboard...</div>;
+  }
 
   const stats = [
-    { icon: '📚', value: enrolled.length, label: 'Enrolled Courses' },
-    { icon: '📊', value: '68%', label: 'Overall Progress' },
-    { icon: '📝', value: '4', label: 'Upcoming Tests' },
-    { icon: '🎯', value: '89%', label: 'Attendance Rate' },
+    { icon: '📚', value: data?.stats?.enrolledCount || 0, label: 'Enrolled Courses' },
+    { icon: '📊', value: data?.stats?.overallProgress || '0%', label: 'Overall Progress' },
+    { icon: '📝', value: data?.stats?.upcomingTestsCount || 0, label: 'Upcoming Tests' },
+    { icon: '🎯', value: data?.stats?.attendanceRate || '0%', label: 'Attendance Rate' },
   ];
 
-  const upcomingClasses = [
-    { title: 'React Hooks Deep Dive', time: 'Today, 10:00 AM', trainer: 'Anita Sharma', status: 'upcoming' },
-    { title: 'Node.js REST APIs', time: 'Today, 2:00 PM', trainer: 'Anita Sharma', status: 'upcoming' },
-    { title: 'MongoDB Aggregation', time: 'Tomorrow, 10:00 AM', trainer: 'Rajesh Kumar', status: 'upcoming' },
-  ];
-
-  const recentActivity = [
-    { action: 'Submitted Assignment: React Todo App', time: '2 hours ago', type: 'success' },
-    { action: 'Attended Class: JavaScript Basics', time: 'Yesterday', type: 'info' },
-    { action: 'Test Result: HTML/CSS - 92%', time: '2 days ago', type: 'success' },
-    { action: 'Payment: Course fee paid', time: '1 week ago', type: 'info' },
-  ];
+  const upcomingClasses = data?.upcomingClasses || [];
+  const courseProgress = data?.courseProgress || [];
+  const recentActivity = data?.recentActivities || [];
 
   return (
     <div className="animate-fade-in">
@@ -46,6 +65,7 @@ export default function StudentDashboard() {
         <motion.div className="card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div className="card-body">
             <h3 style={{ fontWeight: 700, marginBottom: 16 }}>📅 Upcoming Classes</h3>
+            {upcomingClasses.length === 0 && <p style={{fontSize: 14, color: 'var(--gray-500)'}}>No upcoming classes</p>}
             {upcomingClasses.map((cls, i) => (
               <div key={i} style={{ padding: '12px 0', borderBottom: i < upcomingClasses.length - 1 ? '1px solid var(--gray-200)' : 'none' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -63,14 +83,11 @@ export default function StudentDashboard() {
         <motion.div className="card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <div className="card-body">
             <h3 style={{ fontWeight: 700, marginBottom: 16 }}>📊 Course Progress</h3>
-            {[
-              { name: 'Full Stack Web Development', progress: 72 },
-              { name: 'Data Science & ML', progress: 45 },
-              { name: 'UI/UX Design', progress: 90 },
-            ].map((course, i) => (
+            {courseProgress.length === 0 && <p style={{fontSize: 14, color: 'var(--gray-500)'}}>No enrolled courses</p>}
+            {courseProgress.map((course, i) => (
               <div key={i} style={{ marginBottom: 16 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
-                  <span style={{ fontWeight: 600 }}>{course.name}</span>
+                  <span style={{ fontWeight: 600 }}>{course.courseName}</span>
                   <span>{course.progress}%</span>
                 </div>
                 <div className="progress-bar">
@@ -86,6 +103,7 @@ export default function StudentDashboard() {
         <motion.div className="card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <div className="card-body">
             <h3 style={{ fontWeight: 700, marginBottom: 16 }}>🎯 Recent Activity</h3>
+            {recentActivity.length === 0 && <p style={{fontSize: 14, color: 'var(--gray-500)'}}>No recent activity</p>}
             {recentActivity.map((act, i) => (
               <div key={i} style={{ display: 'flex', gap: 12, padding: '10px 0', borderBottom: i < recentActivity.length - 1 ? '1px solid var(--gray-200)' : 'none' }}>
                 <span style={{ fontSize: '1.2rem' }}>{act.type === 'success' ? '✅' : 'ℹ️'}</span>
@@ -101,21 +119,21 @@ export default function StudentDashboard() {
         <motion.div className="card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           <div className="card-body">
             <h3 style={{ fontWeight: 700, marginBottom: 16 }}>📋 Attendance Overview</h3>
-            {[
-              { subject: 'Full Stack Web Dev', attended: 22, total: 25 },
-              { subject: 'Data Science', attended: 15, total: 20 },
-              { subject: 'UI/UX Design', attended: 18, total: 18 },
-            ].map((a, i) => (
-              <div key={i} style={{ marginBottom: 16 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
-                  <span style={{ fontWeight: 600 }}>{a.subject}</span>
-                  <span>{a.attended}/{a.total} ({Math.round(a.attended / a.total * 100)}%)</span>
+            {courseProgress.length === 0 && <p style={{fontSize: 14, color: 'var(--gray-500)'}}>No attendance data</p>}
+            {courseProgress.map((a, i) => {
+              const rate = a.total > 0 ? Math.round((a.attended / a.total) * 100) : 0;
+              return (
+                <div key={i} style={{ marginBottom: 16 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
+                    <span style={{ fontWeight: 600 }}>{a.courseName}</span>
+                    <span>{a.attended}/{a.total} ({rate}%)</span>
+                  </div>
+                  <div className="progress-bar">
+                    <div className="progress-fill" style={{ width: `${rate}%` }} />
+                  </div>
                 </div>
-                <div className="progress-bar">
-                  <div className="progress-fill" style={{ width: `${a.attended / a.total * 100}%` }} />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </motion.div>
       </div>

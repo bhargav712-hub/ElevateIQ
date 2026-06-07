@@ -75,11 +75,8 @@ export function AuthProvider({ children }) {
 
       if (response.ok) {
         setLoading(false);
-        // After registration, we should ideally log them in. 
-        // For now, we will just return success. 
-        // They will be redirected to login or we can log them in automatically.
-        // Let's automatically log them in so it works exactly like the mock!
-        return await login(data.email, data.password);
+        // After registration, user must manually log in.
+        return resData;
       } else {
         setLoading(false);
         throw new Error(resData.message || 'Registration failed');

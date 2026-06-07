@@ -1,35 +1,45 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 
 export default function StudentCourses() {
   const navigate = useNavigate();
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const courses = [
-    {
-      id: 1,
-      title: 'Full Stack Web Development',
-      progress: 72,
-      instructor: 'Anita Sharma',
-      topics: 24,
-      completed: 17,
-      nextClass: 'React Hooks - June 5',
-      image: '🚀',
-    },
-    {
-      id: 2,
-      title: 'Data Science & Machine Learning',
-      progress: 45,
-      instructor: 'Rajesh Kumar',
-      topics: 20,
-      completed: 9,
-      nextClass: 'Python Pandas - June 6',
-      image: '📊',
-    },
-  ];
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('http://localhost:8080/api/student/courses', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setEnrolledCourses(data);
+        }
+      } catch (error) {
+        console.error('Error fetching enrolled courses:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCourses();
+  }, []);
 
   const handleCourseClick = (courseId) => {
     navigate(`/student-courseDetails/${courseId}`);
   };
+
+  if (loading) {
+    return (
+      <div className="animate-fade-in" style={{ padding: '40px', textAlign: 'center' }}>
+        <h2>Loading your courses...</h2>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in">
@@ -52,101 +62,123 @@ export default function StudentCourses() {
         Track your enrolled courses and progress
       </p>
 
-      <div className="grid-2">
-        {courses.map((course, i) => (
-          <motion.div
-            key={course.id}
-            className="card"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-          >
-            <div className="card-body">
-              <div
-                style={{
-                  fontSize: '3rem',
-                  marginBottom: 12,
-                }}
+      {enrolledCourses.length === 0 ? (
+        <div className="card">
+          <div className="card-body" style={{ textAlign: 'center', padding: '40px' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '16px' }}>📭</div>
+            <h3>No Enrolled Courses</h3>
+            <p style={{ color: 'var(--gray-500)', marginBottom: '24px' }}>
+              You haven't enrolled in any courses yet. Check out the catalog to get started!
+            </p>
+            <button className="btn btn-primary" onClick={() => navigate('/courses')}>
+              Browse Catalog
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="grid-2">
+          {enrolledCourses.map((item, i) => {
+            const course = item.course;
+            const progress = item.progress;
+            
+            if (!course) return null;
+
+            return (
+              <motion.div
+                key={course.id}
+                className="card"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
               >
-                {course.image}
-              </div>
-
-              <h3
-                style={{
-                  fontWeight: 700,
-                  marginBottom: 8,
-                }}
-              >
-                {course.title}
-              </h3>
-
-              <p
-                style={{
-                  fontSize: 13,
-                  color: 'var(--gray-500)',
-                  marginBottom: 16,
-                }}
-              >
-                👩‍🏫 {course.instructor}
-              </p>
-
-              <div style={{ marginBottom: 16 }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    fontSize: 13,
-                    marginBottom: 6,
-                  }}
-                >
-                  <span>Course Progress</span>
-
-                  <span
+                <div className="card-body">
+                  <div
                     style={{
-                      fontWeight: 700,
-                      color: 'var(--primary)',
+                      fontSize: '3rem',
+                      marginBottom: 12,
                     }}
                   >
-                    {course.progress}%
-                  </span>
-                </div>
+                    {course.imagePath || '🚀'}
+                  </div>
 
-                <div className="progress-bar">
-                  <div
-                    className="progress-fill"
+                  <h3
                     style={{
-                      width: `${course.progress}%`,
+                      fontWeight: 700,
+                      marginBottom: 8,
                     }}
-                  />
+                  >
+                    {course.title}
+                  </h3>
+
+                  <p
+                    style={{
+                      fontSize: 13,
+                      color: 'var(--gray-500)',
+                      marginBottom: 16,
+                    }}
+                  >
+                    👩‍🏫 Instructor {course.rating ? `| ⭐ ${course.rating}` : ''}
+                  </p>
+
+                  <div style={{ marginBottom: 16 }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        fontSize: 13,
+                        marginBottom: 6,
+                      }}
+                    >
+                      <span>Course Progress</span>
+
+                      <span
+                        style={{
+                          fontWeight: 700,
+                          color: 'var(--primary)',
+                        }}
+                      >
+                        {progress.progress || 0}%
+                      </span>
+                    </div>
+
+                    <div className="progress-bar" style={{ background: '#e5e7eb', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div
+                        className="progress-fill"
+                        style={{
+                          width: `${progress.progress || 0}%`,
+                          background: 'var(--primary)',
+                          height: '100%'
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: 13,
+                      color: 'var(--gray-500)',
+                      marginBottom: 16,
+                    }}
+                  >
+                    <span>
+                      📚 {progress.attended || 0}/{progress.total || 0} Modules Completed
+                    </span>
+                  </div>
+
+                  <button
+                    className="btn btn-primary btn-block"
+                    onClick={() => handleCourseClick(course.id)}
+                  >
+                    Continue Learning →
+                  </button>
                 </div>
-              </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  fontSize: 13,
-                  color: 'var(--gray-500)',
-                  marginBottom: 16,
-                }}
-              >
-                <span>
-                  📚 {course.completed}/{course.topics} Topics
-                </span>
-
-                <span>📅 {course.nextClass}</span>
-              </div>
-
-              <button
-                className="btn btn-primary btn-block"
-                onClick={() => handleCourseClick(course.id)}
-              >
-                Continue Learning →
-              </button>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

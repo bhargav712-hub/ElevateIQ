@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext';
 import {
   FiClock, FiStar, FiUsers, FiCheck, FiArrowRight,
   FiCode, FiBarChart2, FiCloud, FiFeather, FiChevronDown
@@ -22,6 +23,9 @@ export default function Courses() {
   const [courses, setCourses] = useState([]);
   const [faqData, setFaqData] = useState([]);
 
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
   useEffect(() => {
     fetch('http://localhost:8080/api/public/courses')
       .then(res => res.json())
@@ -33,6 +37,29 @@ export default function Courses() {
       .then(data => setFaqData(data))
       .catch(err => console.error("Failed to fetch FAQ:", err));
   }, []);
+
+  const handleEnroll = async (courseId) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:8080/api/student/enroll/${courseId}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if(res.ok) {
+        navigate('/student-dashboard');
+      } else {
+        const errText = await res.text();
+        alert(`Enrollment failed: ${errText}`);
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error occurred during enrollment");
+    }
+  };
 
   const categories = ['All', ...new Set(courses.map(c => c.category))];
   const filtered = filter === 'All' ? courses : courses.filter(c => c.category === filter);
@@ -98,9 +125,14 @@ export default function Courses() {
                         </div>
                         <span className="badge badge-success" style={{ background: 'rgba(16, 185, 129, 0.12)', color: 'var(--success)', border: '1px solid rgba(16, 185, 129, 0.2)' }}>Save ${course.originalPrice - course.price}</span>
                       </div>
-                      <Link to={`/course/${course.id}`} className="btn btn-primary btn-block" style={{ gap: 8, textDecoration: 'none' }}>
-                        View Details <FiArrowRight />
-                      </Link>
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        <Link to={`/course/${course.id}`} className="btn btn-outline btn-block" style={{ textDecoration: 'none', flex: 1 }}>
+                          Details
+                        </Link>
+                        <button onClick={(e) => { e.preventDefault(); handleEnroll(course.id); }} className="btn btn-primary btn-block" style={{ gap: 8, flex: 1, cursor: 'pointer', border: 'none' }}>
+                          Enroll <FiArrowRight />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </motion.div>

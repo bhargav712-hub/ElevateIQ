@@ -146,13 +146,15 @@ public class Course {
         private Integer module;
         private String title;
         private String duration;
+        private String videoUrl;
 
         public CourseModule() {}
 
-        public CourseModule(Integer module, String title, String duration) {
+        public CourseModule(Integer module, String title, String duration, String videoUrl) {
             this.module = module;
             this.title = title;
             this.duration = duration;
+            this.videoUrl = videoUrl;
         }
 
         public Integer getModule() { return module; }
@@ -161,5 +163,7 @@ public class Course {
         public void setTitle(String title) { this.title = title; }
         public String getDuration() { return duration; }
         public void setDuration(String duration) { this.duration = duration; }
+        public String getVideoUrl() { return videoUrl; }
+        public void setVideoUrl(String videoUrl) { this.videoUrl = videoUrl; }
     }
 }

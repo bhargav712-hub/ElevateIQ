@@ -28,8 +28,8 @@ export default function Register() {
     if (Object.keys(errs).length === 0) {
       try {
         await register(form);
-        setToast({ message: 'Account created successfully!', type: 'success' });
-        setTimeout(() => navigate(`/${form.role}-dashboard`), 500);
+        setToast({ message: 'Account created successfully! Please log in.', type: 'success' });
+        setTimeout(() => navigate('/login'), 1500);
       } catch {
         setToast({ message: 'Registration failed. Try again.', type: 'error' });
       }

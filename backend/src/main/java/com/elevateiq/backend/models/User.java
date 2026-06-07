@@ -20,7 +20,7 @@ public class User {
     private String avatar;
 
     // For Student
-    private List<Integer> enrolledCourses;
+    private List<String> enrolledCourses;
     
     // For Trainer
     private List<Integer> assignedCourses;
